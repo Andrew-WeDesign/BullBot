@@ -43,5 +43,22 @@ namespace BullBot.Common
             return message;
         }
 
+        public static async Task<IMessage> SendLogAsync(this ITextChannel channel, string title, string description)
+        {
+            var embed = new EmbedBuilder()
+                .WithColor(new Color(26, 155, 226))
+                .WithDescription(description)
+                .WithAuthor(author =>
+                {
+                    author
+                    .WithIconUrl("https://cdn.discordapp.com/avatars/807196571040350249/d80c362736b802d4bf3c81c81a9f3bcd.png?size=256&quot")
+                    .WithName(title);
+                })
+                .Build();
+
+            var message = await channel.SendMessageAsync(embed: embed);
+            return message;
+        }
+
     }
 }

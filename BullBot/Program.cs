@@ -62,8 +62,7 @@ namespace BullBot
                     .AddSingleton<Images>()
                     .AddSingleton<Ranks>()
                     .AddSingleton<AutoRoles>()
-                    .AddSingleton<RanksHelper>()
-                    .AddSingleton<AutoRolesHelper>();
+                    .AddSingleton<ServerHelper>();
                 })
                 .UseConsoleLifetime();
 

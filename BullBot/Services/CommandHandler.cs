@@ -23,18 +23,18 @@ namespace BullBot.Services
         private readonly CommandService _service;
         private readonly IConfiguration _config;
         private readonly Servers _servers;
-        private readonly AutoRolesHelper _autoRolesHelper;
+        private readonly ServerHelper _serverHelper;
         private readonly Images _images;
         public static List<Mute> Mutes = new List<Mute>();
 
-        public CommandHandler(DiscordSocketClient client, CommandService service, IConfiguration config, IServiceProvider provider, Servers servers, AutoRolesHelper autoRolesHelper, Images images)
+        public CommandHandler(DiscordSocketClient client, CommandService service, IConfiguration config, IServiceProvider provider, Servers servers, ServerHelper serverHelper, Images images)
         {
             _provider = provider;
             _config = config;
             _client = client;
             _service = service;
             _servers = servers;
-            _autoRolesHelper = autoRolesHelper;
+            _serverHelper = serverHelper;
             _images = images;
         }
 
@@ -63,7 +63,7 @@ namespace BullBot.Services
 
         private async Task HandleUserJoined(SocketGuildUser arg)
         {
-            var roles = await _autoRolesHelper.GetAutoRolesAsync(arg.Guild);
+            var roles = await _serverHelper.GetAutoRolesAsync(arg.Guild);
             if (roles.Count > 0)
                 await arg.AddRolesAsync(roles);
 
@@ -123,6 +123,16 @@ namespace BullBot.Services
         {
             if (!(arg is SocketUserMessage message)) return;
             if (message.Source != MessageSource.User) return;
+
+            if (message.Content.Contains("https://discord.gg/"))
+            {
+                if (!(message.Channel as SocketGuildChannel).Guild.GetUser(message.Author.Id).GuildPermissions.Administrator)
+                {
+                    await message.DeleteAsync();
+                    await message.Channel.SendMessageAsync($"{message.Author.Mention}You cannot send Discord invite links!");
+                    return;
+                }
+            }
 
             var argPos = 0;
             var prefix = await _servers.GetGuildPrefix((message.Channel as SocketGuildChannel).Guild.Id) ?? "$";

@@ -12,19 +12,17 @@ namespace BullBot.Modules
 {
     public class Configuration : ModuleBase<SocketCommandContext>
     {
-        private readonly RanksHelper _ranksHelper;
-        private readonly AutoRolesHelper _autoRolesHelper;
         private readonly Servers _servers;
         private readonly Ranks _ranks;
         private readonly AutoRoles _autoRoles;
+        private readonly ServerHelper _serverHelper;
 
-        public Configuration(RanksHelper ranksHelper, Servers servers, Ranks ranks, AutoRolesHelper autoRolesHelper, AutoRoles autoRoles)
+        public Configuration(Servers servers, Ranks ranks, AutoRoles autoRoles, ServerHelper serverHelper)
         {
             _servers = servers;
-            _ranksHelper = ranksHelper;
-            _autoRolesHelper = autoRolesHelper;
             _ranks = ranks;
             _autoRoles = autoRoles;
+            _serverHelper = serverHelper;
         }
 
         [Command("prefix", RunMode = RunMode.Async)]
@@ -47,12 +45,13 @@ namespace BullBot.Modules
 
             await _servers.ModifyGuildPrefix(Context.Guild.Id, prefix);
             await ReplyAsync($"the prefix has been adjusted to `{prefix}`.");
+            await _serverHelper.SendLogAsync(Context.Guild, "Prefix adjusted", $"{Context.User.Mention} modified the prefix to `{prefix}`.");
         }
 
         [Command("ranks", RunMode = RunMode.Async)]
         public async Task Ranks()
         {
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
             if (ranks.Count == 0)
             {
                 await ReplyAsync("This server does not yet have any ranks!");
@@ -76,7 +75,7 @@ namespace BullBot.Modules
         public async Task AddRank([Remainder]string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -107,7 +106,7 @@ namespace BullBot.Modules
         public async Task DelRank([Remainder]string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -116,7 +115,7 @@ namespace BullBot.Modules
                 return;
             }
 
-            if (ranks.Any(x => x.Id != role.Id))
+            if (ranks.All(x => x.Id != role.Id))
             {
                 await ReplyAsync("That role is not a rank!");
                 return;
@@ -131,7 +130,7 @@ namespace BullBot.Modules
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task AutoRoles()
         {
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
             if (autoRoles.Count == 0)
             {
                 await ReplyAsync("This server does not yet have any autoroles!");
@@ -155,7 +154,7 @@ namespace BullBot.Modules
         public async Task AddAutoRole([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -183,10 +182,10 @@ namespace BullBot.Modules
         [Command("delautorole", RunMode = RunMode.Async)]
         [RequireUserPermission(GuildPermission.Administrator)]
         [RequireBotPermission(GuildPermission.ManageRoles)]
-        public async Task DelAutoROle([Remainder] string name)
+        public async Task DelAutoRole([Remainder] string name)
         {
             await Context.Channel.TriggerTypingAsync();
-            var autoRoles = await _autoRolesHelper.GetAutoRolesAsync(Context.Guild);
+            var autoRoles = await _serverHelper.GetAutoRolesAsync(Context.Guild);
 
             var role = Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (role == null)
@@ -195,7 +194,7 @@ namespace BullBot.Modules
                 return;
             }
 
-            if (autoRoles.Any(x => x.Id != role.Id))
+            if (autoRoles.All(x => x.Id != role.Id))
             {
                 await ReplyAsync("That role is not an autorole!");
                 return;
@@ -278,5 +277,62 @@ namespace BullBot.Modules
 
             await ReplyAsync("You did not use this command properly.");
         }
+
+        [Command("logs")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task Logs(string value = null)
+        {
+            if (value == null)
+            {
+                var fetchedChannelId = await _servers.GetLogsASync(Context.Guild.Id);
+                if (fetchedChannelId == 0)
+                {
+                    await ReplyAsync("A logs channel has not been set.");
+                    return;
+                }
+
+                var fetchedChannel = Context.Guild.GetTextChannel(fetchedChannelId);
+                if (fetchedChannel == null)
+                {
+                    await ReplyAsync("A logs channel has not been set.");
+                    await _servers.ClearLogsAsync(Context.Guild.Id);
+                    return;
+                }
+
+                await ReplyAsync($"The channel used for the logs module is {fetchedChannel.Mention}.");
+
+                return;
+            }
+
+            if (value != "clear")
+            {
+                if (!MentionUtils.TryParseChannel(value, out ulong parsedId))
+                {
+                    await ReplyAsync("Please pass in a valid channel.");
+                    return;
+                }
+
+                var parsedChannel = Context.Guild.GetTextChannel(parsedId);
+                if (parsedChannel == null)
+                {
+                    await ReplyAsync("Please pass in a valid channel.");
+                    return;
+                }
+
+                await _servers.ModifyLogsAsync(Context.Guild.Id, parsedId);
+                await ReplyAsync($"Successfully modified the logs channel to {parsedChannel.Mention}.");
+                return;
+            }
+
+            if (value == "clear")
+            {
+                await _servers.ClearLogsAsync(Context.Guild.Id);
+                await ReplyAsync("Successfully cleared the logs channel");
+                return;
+            }
+
+            await ReplyAsync("You did not use this command properly.");
+        }
+
     }
 }

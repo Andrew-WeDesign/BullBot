@@ -22,15 +22,13 @@ namespace BullBot.Modules
     {
         private readonly ILogger<General> _logger;
         private readonly Images _images;
-        private readonly RanksHelper _ranksHelper;
-        private readonly AutoRolesHelper _autoRolesHelper;
+        private readonly ServerHelper _serverHelper;
 
-        public General(ILogger<General> logger, Images images, RanksHelper ranksHelper, AutoRolesHelper autoRolesHelper)
+        public General(ILogger<General> logger, Images images, ServerHelper serverHelper)
         {
             _logger = logger;
             _images = images;
-            _ranksHelper = ranksHelper;
-            _autoRolesHelper = autoRolesHelper;
+            _serverHelper = serverHelper;
 
         }
 
@@ -141,7 +139,7 @@ namespace BullBot.Modules
         public async Task Rank([Remainder]string identifier)
         {
             await Context.Channel.TriggerTypingAsync();
-            var ranks = await _ranksHelper.GetRanksAsync(Context.Guild);
+            var ranks = await _serverHelper.GetRanksAsync(Context.Guild);
 
             IRole role;
 
@@ -168,7 +166,7 @@ namespace BullBot.Modules
                 role = roleByName;
             }
 
-            if (ranks.Any(x => x.Id != role.Id))
+            if (ranks.All(x => x.Id != role.Id))
             {
                 await ReplyAsync("That rank does not exist!");
                 return;
@@ -260,6 +258,15 @@ namespace BullBot.Modules
             await user.RemoveRoleAsync(role);
             await Context.Channel.SendSuccessAsync($"Unmuted {user.Username}", $"Successfully unmuted the user.");
 
+        }
+
+        [Command("slowmode")]
+        [RequireUserPermission(GuildPermission.ManageChannels)]
+        [RequireBotPermission(GuildPermission.ManageChannels)]
+        public async Task Slowmode(int interval = 0)
+        {
+            await (Context.Channel as SocketTextChannel).ModifyAsync(x => x.SlowModeInterval = interval);
+            await ReplyAsync($"The slowmode interval was adjusted to {interval} seconds");
         }
     }
 }
