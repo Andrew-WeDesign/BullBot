@@ -12,7 +12,6 @@ namespace BullBot.Utilities
 {
     public class ServerHelper
     {
-
         private readonly Servers _servers;
         private readonly Ranks _ranks;
         private readonly AutoRoles _autoRoles;

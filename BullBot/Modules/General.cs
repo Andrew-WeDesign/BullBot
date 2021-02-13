@@ -23,13 +23,14 @@ namespace BullBot.Modules
         private readonly ILogger<General> _logger;
         private readonly Images _images;
         private readonly ServerHelper _serverHelper;
+        private readonly Stocks _stocks;
 
-        public General(ILogger<General> logger, Images images, ServerHelper serverHelper)
+        public General(ILogger<General> logger, Images images, ServerHelper serverHelper, Stocks stocks)
         {
             _logger = logger;
             _images = images;
             _serverHelper = serverHelper;
-
+            _stocks = stocks;
         }
 
         [Command("ping", RunMode = RunMode.Async)]

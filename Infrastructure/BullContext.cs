@@ -8,6 +8,7 @@ namespace Infrastructure
         public DbSet<Server> Servers { get; set; }
         public DbSet<Rank> Ranks { get; set; }
         public DbSet<AutoRole> AutoRoles { get; set; }
+        public DbSet<Ticker> Tickers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseMySql("server=localhost;user=root;database=BullBot;port=3306;Connect Timeout=5");
@@ -34,6 +35,12 @@ namespace Infrastructure
         public int Id { get; set; }
         public ulong RoleId { get; set; }
         public ulong ServerId { get; set; }
+    }
+
+    public class Ticker
+    {
+        public int Id { get; set; }
+        public string Symbol { get; set; }
     }
 
 }
