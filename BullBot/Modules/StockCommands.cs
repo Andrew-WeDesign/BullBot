@@ -40,5 +40,18 @@ namespace BullBot.Modules
                 await ReplyAsync(msg);
             }
         }
+
+        [Command("bulllist")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task GetBullList()
+        {
+            var bList = await _stocks.GetBullList();
+            string replyList = "";
+            foreach (BullList bItem in bList)
+            {
+                replyList += $"{bItem.Symbol}  {bItem.Reason}   {bItem.DateAdded}\n";
+            }
+            await ReplyAsync(replyList);
+        }
     }
 }

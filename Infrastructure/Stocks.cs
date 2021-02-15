@@ -49,5 +49,11 @@ namespace Infrastructure
                 return modTickMsg;
             }
         }
+
+        public async Task<List<BullList>> GetBullList()
+        {
+            var BullList = await _context.BullLists.ToListAsync();
+            return await Task.FromResult(BullList);
+        }
     }
 }

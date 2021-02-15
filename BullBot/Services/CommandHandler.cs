@@ -88,7 +88,7 @@ namespace BullBot.Services
 
         private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-            if (arg3.MessageId != 807344816832512031) return;
+            if (arg3.MessageId != 810528653120372827) return;
 
             if (arg3.Emote.Name != "✅") return;
 
@@ -98,7 +98,7 @@ namespace BullBot.Services
 
         private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-            if (arg3.MessageId != 807344816832512031) return;
+            if (arg3.MessageId != 810528653120372827) return;
 
             if (arg3.Emote.Name != "✅") return;
 

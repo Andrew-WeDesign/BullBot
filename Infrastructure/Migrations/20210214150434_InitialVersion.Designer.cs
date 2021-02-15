@@ -3,14 +3,16 @@ using System;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(BullContext))]
-    partial class BullContextModelSnapshot : ModelSnapshot
+    [Migration("20210214150434_InitialVersion")]
+    partial class InitialVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,9 +87,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("MiddleBand")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal>("Obv")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<decimal>("Open")
